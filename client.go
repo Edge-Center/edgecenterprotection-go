@@ -17,9 +17,16 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://api.edgecenter.ru/dns"
-	tokenHeader    = "APIKey"
-	defaultTimeOut = 10 * time.Second
+	libraryVersion = "1.0.0"
+	defaultBaseURL = "https://api.edgecenter.ru/protection"
+	userAgent      = "edgecloud/" + libraryVersion
+	mediaType      = "application/json"
+
+	internalHeaderRetryAttempts = "X-Edgecloud-Retry-Attempts"
+
+	defaultRetryMax     = 3
+	defaultRetryWaitMax = 30
+	defaultRetryWaitMin = 1
 )
 
 // Client manages communication with Edgecenter Protection API
@@ -28,7 +35,10 @@ type Client struct {
 	HTTPClient *http.Client
 
 	// User agent for client
-	BaseURL    *url.URL
+	BaseURL *url.URL
+
+	// User agent for client
+	UserAgent string
 
 	// APIKey token for client
 	APIKey string
@@ -54,6 +64,18 @@ type RetryConfig struct {
 	Logger       interface{} // Customer logger instance. Must implement either go-retryablehttp.Logger or go-retryablehttp.LeveledLogger
 }
 
+// An ResponseError reports the error caused by an API request.
+type ResponseError struct {
+	// HTTP response that caused this error
+	Response *http.Response
+
+	// Error message
+	Message string `json:"message"`
+
+	// Attempts is the number of times the request was attempted when retries are enabled.
+	Attempts int
+}
+
 // NewClient returns a new Edgecenter protection API, using the given
 // http.Client to perform all requests.
 func NewClient(httpClient *http.Client) *Client {
@@ -63,7 +85,7 @@ func NewClient(httpClient *http.Client) *Client {
 
 	baseURL, _ := url.Parse(defaultBaseURL)
 
-	c := &Client{HTTPClient: httpClient, BaseURL: baseURL}
+	c := &Client{HTTPClient: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 
 	c.headers = make(map[string]string)
 
@@ -161,3 +183,180 @@ func SetAPIKey(apiKey string) ClientOpt {
 	}
 }
 
+// SetUserAgent is a client option for setting the user agent.
+func SetUserAgent(ua string) ClientOpt {
+	return func(c *Client) error {
+		c.UserAgent = fmt.Sprintf("%s %s", ua, c.UserAgent)
+		return nil
+	}
+}
+
+// SetRequestHeaders sets optional HTTP headers on the client that are
+// sent on each HTTP request.
+func SetRequestHeaders(headers map[string]string) ClientOpt {
+	return func(c *Client) error {
+		for k, v := range headers {
+			c.headers[k] = v
+		}
+		return nil
+	}
+}
+
+// WithRetryAndBackoffs sets retry values. Setting the RetryConfig.RetryMax value enables automatically retrying requests
+// that fail with 429 or 500-level response codes using the go-retryablehttp client.
+func WithRetryAndBackoffs(retryConfig RetryConfig) ClientOpt {
+	return func(c *Client) error {
+		c.RetryConfig.RetryMax = retryConfig.RetryMax
+		c.RetryConfig.RetryWaitMax = retryConfig.RetryWaitMax
+		c.RetryConfig.RetryWaitMin = retryConfig.RetryWaitMin
+		c.RetryConfig.Logger = retryConfig.Logger
+		return nil
+	}
+}
+
+// NewRequest creates an API request. A relative URL can be provided in urlStr, which will be resolved to the
+// BaseURL of the Client. Relative URLS should always be specified without a preceding slash. If specified, the
+// value pointed to by body is JSON encoded and included in as the request body.
+func (c *Client) NewRequest(_ context.Context, method, urlStr string, body interface{}) (*http.Request, error) {
+	// check urlStr is valid path
+	if _, err := url.Parse(urlStr); err != nil {
+		return nil, err
+	}
+
+	urlPath := path.Join(c.BaseURL.Path, urlStr)
+	u, err := c.BaseURL.Parse(urlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var req *http.Request
+	switch method {
+	case http.MethodGet, http.MethodHead, http.MethodOptions:
+		req, err = http.NewRequest(method, u.String(), nil)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		buf := new(bytes.Buffer)
+		if body != nil {
+			err = json.NewEncoder(buf).Encode(body)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		req, err = http.NewRequest(method, u.String(), buf)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Content-Type", mediaType)
+	}
+
+	for k, v := range c.headers {
+		req.Header.Add(k, v)
+	}
+
+	req.Header.Set("Accept", mediaType)
+	req.Header.Set("User-Agent", c.UserAgent)
+
+	return req, nil
+}
+
+// Do sends an API request and returns the API response. The API response is JSON decoded and stored in the value
+// pointed to by v, or returned as an error if an API error has occurred. If v implements the io.Writer interface,
+// the raw response will be written to v, without attempting to decode it.
+func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
+	resp, err := DoRequestWithClient(ctx, c.HTTPClient, req)
+	if err != nil {
+		return &http.Response{
+			Status:     http.StatusText(http.StatusInternalServerError),
+			StatusCode: http.StatusInternalServerError,
+		}, err
+	}
+
+	defer func() {
+		// Ensure the response body is fully read and closed
+		// before we reconnect, so that we reuse the same TCPConnection.
+		// Close the previous response's body. But read at least some of
+		// the body so if it's small the underlying TCP connection will be
+		// re-used. No need to check for errors: if it fails, the Transport
+		// won't reuse it anyway.
+		const maxBodySlurpSize = 2 << 10
+		if resp.ContentLength == -1 || resp.ContentLength <= maxBodySlurpSize {
+			_, _ = io.CopyN(io.Discard, resp.Body, maxBodySlurpSize)
+		}
+
+		if rErr := resp.Body.Close(); err == nil {
+			err = rErr
+		}
+	}()
+
+	err = CheckResponse(resp)
+	if err != nil {
+		return resp, err
+	}
+
+	if resp.StatusCode != http.StatusNoContent && v != nil {
+		if w, ok := v.(io.Writer); ok {
+			_, err = io.Copy(w, resp.Body)
+		} else {
+			err = json.NewDecoder(resp.Body).Decode(v)
+		}
+		if err != nil {
+			return &http.Response{
+				Status:     http.StatusText(http.StatusInternalServerError),
+				StatusCode: http.StatusInternalServerError,
+			}, err
+		}
+	}
+
+	return resp, err
+}
+
+// DoRequestWithClient submits an HTTP request using the specified client.
+func DoRequestWithClient(ctx context.Context, client *http.Client, req *http.Request) (*http.Response, error) {
+	req = req.WithContext(ctx)
+
+	return client.Do(req)
+}
+
+func (r *ResponseError) Error() string {
+	var attempted string
+	if r.Attempts > 0 {
+		attempted = fmt.Sprintf("; giving up after %d attempt(s)", r.Attempts)
+	}
+
+	return fmt.Sprintf("%v %v: %d %v%s",
+		r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode, r.Message, attempted)
+}
+
+// CheckResponse checks the API response for errors, and returns them if present. A response is considered an
+// error if it has a status code outside the 200 range. API error responses are expected to have either no response
+// body, or a JSON response body that maps to ResponseError. Any other response body will be silently ignored.
+// If the API error response does not include the request ID in its body, the one from its header will be used.
+func CheckResponse(r *http.Response) error {
+	if c := r.StatusCode; c >= 200 && c <= 299 {
+		return nil
+	}
+
+	errorResponse := &ResponseError{Response: r}
+	data, err := io.ReadAll(r.Body)
+	if err == nil && len(data) > 0 {
+		err := json.Unmarshal(data, errorResponse)
+		if err != nil {
+			errorResponse.Message = string(data)
+		}
+	}
+
+	attempts, strconvErr := strconv.Atoi(r.Header.Get(internalHeaderRetryAttempts))
+	if strconvErr == nil {
+		errorResponse.Attempts = attempts
+	}
+
+	return errorResponse
+}
+
+// PtrTo returns a pointer to the provided input.
+func PtrTo[T any](v T) *T {
+	return &v
+}
