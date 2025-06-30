@@ -57,101 +57,101 @@ var ResourceHTTPS2HTTP = map[bool]byte{
 }
 
 type ProtectionResource struct {
-	active        bool              `json:"active"`
-	Waf           bool              `json:"is_waf_enabled"`
-	RedirectHTTPS bool              `json:"is_redirect_to_https_enabled"`
-	BotProtection byte              `json:"service_botprotect"`
-	SSL           ResourceSSLType   `json:"ssl_type"`
-	SSLStatus     ResourceSSLStatus `json:"service_ssl_status"`
-	GeoIPMode     byte              `json:"service_geoip_mode"`
-	GeoIPList     string            `json:"service_geoip_list"`
-	Https2Http    byte              `json:"service_https2http"`
-	WWWRedir      byte              `json:"service_wwwredir"`
+	active        bool              `json:"active,omitempty"`
+	Waf           bool              `json:"is_waf_enabled,omitempty"`
+	RedirectHTTPS bool              `json:"is_redirect_to_https_enabled,omitempty"`
+	BotProtection byte              `json:"service_botprotect,omitempty"`
+	SSL           ResourceSSLType   `json:"ssl_type,omitempty"`
+	SSLStatus     ResourceSSLStatus `json:"service_ssl_status,omitempty"`
+	GeoIPMode     byte              `json:"service_geoip_mode,omitempty"`
+	GeoIPList     string            `json:"service_geoip_list,omitempty"`
+	Https2Http    byte              `json:"service_https2http,omitempty"`
+	WWWRedir      byte              `json:"service_wwwredir,omitempty"`
 
-	aliases      []ResourceAlias      `json:"aliases"`
-	origins      []ResourceOrigin     `json:"origins"`
-	whitelists   []ResourceWhitelist  `json:"whitelists"`
-	blacklists   []ResourceBlacklist  `json:"blacklists"`
-	http_headers []ResourceHttpHeader `json:"http_headers"`
+	aliases      []ResourceAlias      `json:"aliases,omitempty"`
+	origins      []ResourceOrigin     `json:"origins,omitempty"`
+	whitelists   []ResourceWhitelist  `json:"whitelists,omitempty"`
+	blacklists   []ResourceBlacklist  `json:"blacklists,omitempty"`
+	http_headers []ResourceHttpHeader `json:"http_headers,omitempty"`
 
 	// read-only
-	ID           int64          `json:"id"`
-	enabled      bool           `json:"enabled"`
-	DomainName   string         `json:"name"`
-	status       ResourceStatus `json:"status"`
-	ControlPanel int64          `json:"client"`
-	created      string         `json:"created"`
-	updated      string         `json:"updated"`
-	ServiceIP    string         `json:"service_ip"`
+	ID           int64          `json:"id,omitempty"`
+	enabled      bool           `json:"enabled,omitempty"`
+	DomainName   string         `json:"name,omitempty"`
+	status       ResourceStatus `json:"status,omitempty"`
+	ControlPanel int64          `json:"client,omitempty"`
+	created      string         `json:"created,omitempty"`
+	updated      string         `json:"updated,omitempty"`
+	ServiceIP    string         `json:"service_ip,omitempty"`
 
-	TLSVersionsEnabled []string `json:"tls_versions_enabled"`
+	TLSVersionsEnabled []string `json:"tls_versions_enabled,omitempty"`
 
 	// internal parameters
-	ServiceCDN             int64  `json:"service_cdn"`
-	ServiceCDNHost         string `json:"service_cdn_host"`
-	ServiceCDNProxyHost    string `json:"service_cdn_proxy_host"`
-	ServiceEnable          int64  `json:"service_enable"`
-	ServiceForceSSL        int64  `json:"service_forcessl"`
-	ServiceGlobalWhitelist int64  `json:"service_global_whitelist"`
-	ServiceHTTP2           int64  `json:"service_http2"`
-	ServiceIPHash          int64  `json:"service_iphash"`
-	ServiceMethods         int64  `json:"service_methods"`
-	ServiceStream          int64  `json:"service_stream"`
+	ServiceCDN             int64  `json:"service_cdn,omitempty"`
+	ServiceCDNHost         string `json:"service_cdn_host,omitempty"`
+	ServiceCDNProxyHost    string `json:"service_cdn_proxy_host,omitempty"`
+	ServiceEnable          int64  `json:"service_enable,omitempty"`
+	ServiceForceSSL        int64  `json:"service_forcessl,omitempty"`
+	ServiceGlobalWhitelist int64  `json:"service_global_whitelist,omitempty"`
+	ServiceHTTP2           int64  `json:"service_http2,omitempty"`
+	ServiceIPHash          int64  `json:"service_iphash,omitempty"`
+	ServiceMethods         int64  `json:"service_methods,omitempty"`
+	ServiceStream          int64  `json:"service_stream,omitempty"`
 }
 
 type ResourceAlias struct {
-	Domain    string            `json:"alias_data"`
-	SSLExpire int64             `json:"alias_ssl_expire"`
-	SSL       ResourceSSLType   `json:"ssl_type"`
-	SSLStatus ResourceSSLStatus `json:"service_ssl_status"`
+	Domain    string            `json:"alias_data,omitempty"`
+	SSLExpire int64             `json:"alias_ssl_expire,omitempty"`
+	SSL       ResourceSSLType   `json:"ssl_type,omitempty"`
+	SSLStatus ResourceSSLStatus `json:"service_ssl_status,omitempty"`
 
 	// read-only
-	ID      int64  `json:"id"`
-	created string `json:"alias_created"`
-	updated string `json:"alias_updated"`
+	ID      int64  `json:"id,omitempty"`
+	created string `json:"alias_created,omitempty"`
+	updated string `json:"alias_updated,omitempty"`
 
 	// internal
-	AliasID int64 `json:"alias_id"`
+	AliasID int64 `json:"alias_id,omitempty"`
 }
 
 type ResourceOrigin struct {
-	Data        string `json:"origin_data"`
-	Weight      byte   `json:"origin_weight"`
-	Mode        string `json:"origin_mode"`
-	FailTimeout int32  `json:"origin_fail_timeout"`
-	MaxFails    int32  `json:"origin_max_fails"`
+	Data        string `json:"origin_data,omitempty"`
+	Weight      byte   `json:"origin_weight,omitempty"`
+	Mode        string `json:"origin_mode,omitempty"`
+	FailTimeout int32  `json:"origin_fail_timeout,omitempty"`
+	MaxFails    int32  `json:"origin_max_fails,omitempty"`
 
 	// read-only
-	ID int64 `json:"id"`
+	ID int64 `json:"id,omitempty"`
 
 	// internal
-	OriginID int64 `json:"origin_id"`
+	OriginID int64 `json:"origin_id,omitempty"`
 }
 
 type ResourceWhitelist struct {
-	Data string `json:"whitelist_data"`
+	Data string `json:"whitelist_data,omitempty"`
 
 	// read-only
-	ID int64 `json:"id"`
+	ID int64 `json:"id,omitempty"`
 
 	// internal
-	WhitelistID int64 `json:"whitelist_id"`
+	WhitelistID int64 `json:"whitelist_id,omitempty"`
 }
 
 type ResourceBlacklist struct {
-	Data string `json:"blacklist_data"`
+	Data string `json:"blacklist_data,omitempty"`
 
 	// read-only
-	ID int64 `json:"id"`
+	ID int64 `json:"id,omitempty"`
 
 	// internal
-	BlacklistID int64 `json:"blacklist_id"`
+	BlacklistID int64 `json:"blacklist_id,omitempty"`
 }
 
 type ResourceHTTPHeader struct {
-	key   string `json:"header_key"`
-	value string `json:"header_value"`
+	key   string `json:"header_key,omitempty"`
+	value string `json:"header_value,omitempty"`
 
 	// read-only
-	ID int64 `json:"id"`
+	ID int64 `json:"id,omitempty"`
 }
