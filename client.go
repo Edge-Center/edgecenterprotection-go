@@ -9,10 +9,12 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/google/go-querystring/query"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -43,6 +45,16 @@ type Client struct {
 	// APIKey token for client
 	APIKey string
 
+	// Structures for specific handlers
+	Common     CommonService
+	Services   ServicesService
+	Resources  ResourcesService
+	Aliases    AliasesService
+	Origins    OriginsService
+	Headers    HeadersService
+	Blacklists BlacklistsService
+	Whitelists WhitelistsService
+
 	// Optional extra HTTP headers to set on every request to the API.
 	headers map[string]string
 
@@ -64,6 +76,22 @@ type RetryConfig struct {
 	Logger       interface{} // Customer logger instance. Must implement either go-retryablehttp.Logger or go-retryablehttp.LeveledLogger
 }
 
+// CloudConfig used only for import.
+type CloudConfig struct {
+	APIUrl       string `yaml:"apiURL"`
+	APIToken     string `yaml:"apiToken"`
+	AccessToken  string `yaml:"accessToken"`
+	RefreshToken string `yaml:"refreshToken"`
+}
+
+// RequestCompletionCallback defines the type of the request callback function.
+type RequestCompletionCallback func(*http.Request, *http.Response)
+
+// Response is a EdgecenterCloud response. This wraps the standard http.Response returned from EdgecenterCloud.
+type Response struct {
+	*http.Response
+}
+
 // An ResponseError reports the error caused by an API request.
 type ResponseError struct {
 	// HTTP response that caused this error
@@ -76,24 +104,33 @@ type ResponseError struct {
 	Attempts int
 }
 
-// NewClient returns a new Edgecenter protection API, using the given
-// http.Client to perform all requests.
-func NewClient(httpClient *http.Client) *Client {
-	if httpClient == nil {
-		httpClient = http.DefaultClient
+func addOptions(s string, opt interface{}) (string, error) {
+	v := reflect.ValueOf(opt)
+
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return s, nil
 	}
 
-	baseURL, _ := url.Parse(defaultBaseURL)
+	origURL, err := url.Parse(s)
+	if err != nil {
+		return s, err
+	}
 
-	c := &Client{HTTPClient: httpClient, BaseURL: baseURL, UserAgent: userAgent}
+	origValues := origURL.Query()
 
-	c.headers = make(map[string]string)
+	newValues, err := query.Values(opt)
+	if err != nil {
+		return s, err
+	}
 
-	return c
+	for k, v := range newValues {
+		origValues[k] = v
+	}
+
+	origURL.RawQuery = origValues.Encode()
+
+	return origURL.String(), nil
 }
-
-// ClientOpt are options for New.
-type ClientOpt func(*Client) error
 
 // NewWithRetries returns a new EdgecenterCloud API client with default retries config.
 func NewWithRetries(httpClient *http.Client, opts ...ClientOpt) (*Client, error) {
@@ -107,6 +144,34 @@ func NewWithRetries(httpClient *http.Client, opts ...ClientOpt) (*Client, error)
 
 	return New(httpClient, opts...)
 }
+
+// NewClient returns a new EdgecenterCloud API, using the given
+// http.Client to perform all requests.
+func NewClient(httpClient *http.Client) *Client {
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+
+	baseURL, _ := url.Parse(defaultBaseURL)
+
+	c := &Client{HTTPClient: httpClient, BaseURL: baseURL, UserAgent: userAgent}
+
+	c.Common = &CommonServiceOp{client: c}
+	c.Services = &ServicesServiceOp{client: c}
+	c.Resources = &ResourcesServiceOp{client: c}
+	c.Aliases = &AliasesServiceOp{client: c}
+	c.Origins = &OriginsServiceOp{client: c}
+	c.Headers = &HeadersServiceOp{client: c}
+	c.Blacklists = &BlacklistsServiceOp{client: c}
+	c.Whitelists = &WhitelistsServiceOp{client: c}
+
+	c.headers = make(map[string]string)
+
+	return c
+}
+
+// ClientOpt are options for New.
+type ClientOpt func(*Client) error
 
 // New returns a new EdgecenterCloud API client instance.
 func New(httpClient *http.Client, opts ...ClientOpt) (*Client, error) {
@@ -262,16 +327,28 @@ func (c *Client) NewRequest(_ context.Context, method, urlStr string, body inter
 	return req, nil
 }
 
+// newResponse creates a new Response for the provided http.Response.
+func newResponse(r *http.Response) *Response {
+	response := Response{Response: r}
+
+	return &response
+}
+
 // Do sends an API request and returns the API response. The API response is JSON decoded and stored in the value
 // pointed to by v, or returned as an error if an API error has occurred. If v implements the io.Writer interface,
 // the raw response will be written to v, without attempting to decode it.
-func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*http.Response, error) {
+func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Response, error) {
 	resp, err := DoRequestWithClient(ctx, c.HTTPClient, req)
 	if err != nil {
-		return &http.Response{
-			Status:     http.StatusText(http.StatusInternalServerError),
-			StatusCode: http.StatusInternalServerError,
+		return &Response{
+			Response: &http.Response{
+				Status:     http.StatusText(http.StatusInternalServerError),
+				StatusCode: http.StatusInternalServerError,
+			},
 		}, err
+	}
+	if c.onRequestCompleted != nil {
+		c.onRequestCompleted(req, resp)
 	}
 
 	defer func() {
@@ -291,9 +368,11 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 		}
 	}()
 
+	response := newResponse(resp)
+
 	err = CheckResponse(resp)
 	if err != nil {
-		return resp, err
+		return response, err
 	}
 
 	if resp.StatusCode != http.StatusNoContent && v != nil {
@@ -303,14 +382,16 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*htt
 			err = json.NewDecoder(resp.Body).Decode(v)
 		}
 		if err != nil {
-			return &http.Response{
-				Status:     http.StatusText(http.StatusInternalServerError),
-				StatusCode: http.StatusInternalServerError,
+			return &Response{
+				Response: &http.Response{
+					Status:     http.StatusText(http.StatusInternalServerError),
+					StatusCode: http.StatusInternalServerError,
+				},
 			}, err
 		}
 	}
 
-	return resp, err
+	return response, err
 }
 
 // DoRequestWithClient submits an HTTP request using the specified client.
