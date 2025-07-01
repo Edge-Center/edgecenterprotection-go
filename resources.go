@@ -5,11 +5,11 @@ import (
 )
 
 type ResourceService interface {
-	Create(ctx context.Context, req *ProtectionResource) (*ProtectionResource, error)
-	Get(ctx context.Context, id int64) (*ProtectionResource, error)
-	Update(ctx context.Context, id int64, req *ProtectionResource) (*ProtectionResource, error)
-	Delete(ctx context.Context, resourceID int64) error
-	List(ctx context.Context, ordering string) ([]ProtectionResource, error)
+	Create(ctx context.Context, req *ProtectionResource) (*ProtectionResource, *Response, error)
+	Get(ctx context.Context, id int64) (*ProtectionResource, *Response, error)
+	Update(ctx context.Context, id int64, req *ProtectionResource) (*ProtectionResource, *Response, error)
+	Delete(ctx context.Context, resourceID int64) (*Response, error)
+	List(ctx context.Context, ordering string) ([]ProtectionResource, *Response, error)
 }
 
 type ResourceStatus string
