@@ -72,7 +72,7 @@ type ProtectionResource struct {
 	origins      []ResourceOrigin     `json:"origins,omitempty"`
 	whitelists   []ResourceWhitelist  `json:"whitelists,omitempty"`
 	blacklists   []ResourceBlacklist  `json:"blacklists,omitempty"`
-	http_headers []ResourceHttpHeader `json:"http_headers,omitempty"`
+	http_headers []ResourceHTTPHeader `json:"http_headers,omitempty"`
 
 	// read-only
 	ID           int64          `json:"id,omitempty"`
