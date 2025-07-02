@@ -21,7 +21,7 @@ import (
 const (
 	libraryVersion = "1.0.0"
 	defaultBaseURL = "https://api.edgecenter.ru/protection"
-	userAgent      = "edgecloud/" + libraryVersion
+	userAgent      = "edgeprotection/" + libraryVersion
 	mediaType      = "application/json"
 
 	internalHeaderRetryAttempts = "X-Edgecloud-Retry-Attempts"
