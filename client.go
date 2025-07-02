@@ -345,9 +345,6 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Res
 			},
 		}, err
 	}
-	if c.onRequestCompleted != nil {
-		c.onRequestCompleted(req, resp)
-	}
 
 	defer func() {
 		// Ensure the response body is fully read and closed
