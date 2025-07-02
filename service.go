@@ -34,7 +34,7 @@ type WebProtectionDetails struct {
 // InfrastructureProtectionDetails represents status of infrastructure protection for current client
 type InfrastructureProtectionDetails struct {
 	HaveBill  bool     `json:"have_bill"`
-	ClientIds []string `json:"accessible_client_ids"`
+	ClientIds []int64 `json:"accessible_client_ids"`
 }
 
 // Get web protection status
