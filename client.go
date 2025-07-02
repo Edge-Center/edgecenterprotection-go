@@ -46,7 +46,6 @@ type Client struct {
 	APIKey string
 
 	// Structures for specific handlers
-	Common     CommonService
 	Services   ServicesService
 	Resources  ResourcesService
 	Aliases    AliasesService
@@ -156,7 +155,6 @@ func NewClient(httpClient *http.Client) *Client {
 
 	c := &Client{HTTPClient: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 
-	c.Common = &CommonServiceOp{client: c}
 	c.Services = &ServicesServiceOp{client: c}
 	c.Resources = &ResourcesServiceOp{client: c}
 	c.Aliases = &AliasesServiceOp{client: c}
