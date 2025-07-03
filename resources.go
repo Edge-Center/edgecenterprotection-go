@@ -244,10 +244,18 @@ func (s *ResourcesServiceOp) ValidateResourceRequest(r ResourceCreateRequest) er
 		return NewArgError("GeoIPMode", "must be 0, 1 or 2")
 	}
 
+	if r.WWWRedir != 0 && r.WWWRedir != 1 && r.WWWRedir != 2 {
+		return NewArgError("WWWRedir", "must be 0 or 1")
+	}
+
 	for _, tls := range r.TLSEnabled {
 		if tls != "1" && tls != "1.1" && tls != "1.2" && tls != "1.3" {
 			return NewArgError("TLSEnabled", "must be 1, 1.2, 1.2 or 1.3")
 		}
+	}
+
+	if r.SSLType != "custom" && r.SSLType != "le" {
+		return NewArgError("SSLType", "must be custom or le")
 	}
 
 	return nil
