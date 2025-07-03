@@ -254,7 +254,7 @@ func (s *ResourcesServiceOp) ValidateResourceRequest(r ResourceCreateRequest) er
 		}
 	}
 
-	if r.SSLType != "custom" && r.SSLType != "le" {
+	if r.SSLType != "" && r.SSLType != "custom" && r.SSLType != "le" {
 		return NewArgError("SSLType", "must be custom or le")
 	}
 
