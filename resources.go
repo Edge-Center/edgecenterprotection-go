@@ -21,9 +21,10 @@ type ResourcesService interface {
 	Get(context.Context, int64) (*Resource, *Response, error)
 	Create(context.Context, *ResourceCreateRequest) (*Resource, *Response, error)
 	Delete(context.Context, int64) (*Response, error)
-	Update(context.Context, int64, *ResourceCreateRequest) (*Resource, *Response, error)
+	Update(context.Context, int64, *ResourceUpdateRequest) (*Resource, *Response, error)
 	GetDomainName(context.Context, int64) (*DnsCheck, *Response, error)
-	ValidateResourceRequest(ResourceCreateRequest) error
+	ValidateResourceCreate(ResourceCreateRequest) error
+	ValidateResourceUpdate(ResourceUpdateRequest) error
 }
 
 // ResourcesServiceOp handles communication with DDoS resources methods of the Edgecenter protection API.
@@ -60,9 +61,27 @@ type Resource struct {
 	WaitForLE       uint64   `json:"wait_for_le,omitempty"`
 }
 
-// ResourceCreateRequest represents a request to create a Loadbalancer
+// ResourceCreateRequest represents a request to create a DDoS protection resource
 type ResourceCreateRequest struct {
 	Name            string   `json:"name"`
+	Active          bool     `json:"active,omitempty"`
+	MultipleOrigins bool     `json:"feature_multiple_origins,omitempty"`
+	WidlcardAliases bool     `json:"feature_wildcard_aliases,omitempty"`
+	RedirectToHTTPS bool     `json:"is_redirect_to_https_enabled,omitempty"`
+	HTTPS2HTTP      byte     `json:"service_https2http,omitempty"`
+	IPHash          byte     `json:"service_iphash,omitempty"`
+	GeoIPMode       byte     `json:"service_geoip_mode,omitempty"`
+	GeoIPList       string   `json:"service_geoip_list,omitempty"`
+	WWWRedir        byte     `json:"service_wwwredir,omitempty"`
+	TLSEnabled      []string `json:"tls_enabled"`
+	SSLType         string   `json:"ssl_type,omitempty"`
+	SSLCert         string   `json:"ssl_type,omitempty"`
+	SSLKey          string   `json:"ssl_type,omitempty"`
+	WAF             bool     `json:"is_waf_enabled,omitempty"`
+}
+
+// ResourceUpdateRequest represents a request to update a DDoS protection resource
+type ResourceUpdateRequest struct {
 	Active          bool     `json:"active,omitempty"`
 	MultipleOrigins bool     `json:"feature_multiple_origins,omitempty"`
 	WidlcardAliases bool     `json:"feature_wildcard_aliases,omitempty"`
@@ -155,7 +174,7 @@ func (s *ResourcesServiceOp) Create(ctx context.Context, reqBody *ResourceCreate
 		return nil, nil, NewArgError("reqBody", "cannot be nil")
 	}
 
-	if s.ValidateResourceRequest(*reqBody) != nil {
+	if s.ValidateResourceCreate(*reqBody) != nil {
 		return nil, nil, NewArgError("reqBody", "failed validation")
 	}
 
@@ -187,12 +206,12 @@ func (s *ResourcesServiceOp) Delete(ctx context.Context, resourceID int64) (*Res
 }
 
 // Update DDoS protection resource
-func (s *ResourcesServiceOp) Update(ctx context.Context, resourceID int64, reqBody *ResourceCreateRequest) (*Resource, *Response, error) {
+func (s *ResourcesServiceOp) Update(ctx context.Context, resourceID int64, reqBody *ResourceUpdateRequest) (*Resource, *Response, error) {
 	if reqBody == nil {
 		return nil, nil, NewArgError("reqBody", "cannot be nil")
 	}
 
-	if s.ValidateResourceRequest(*reqBody) != nil {
+	if s.ValidateResourceUpdate(*reqBody) != nil {
 		return nil, nil, NewArgError("reqBody", "failed validation")
 	}
 
@@ -230,8 +249,39 @@ func (s *ResourcesServiceOp) GetDomainName(ctx context.Context, resourceID int64
 	return dnsAnswer, resp, err
 }
 
-// Check request data matches restrictions
-func (s *ResourcesServiceOp) ValidateResourceRequest(r ResourceCreateRequest) error {
+// Check update request data matches restrictions
+func (s *ResourcesServiceOp) ValidateResourceUpdate(r ResourceUpdateRequest) error {
+	if r.HTTPS2HTTP != 0 && r.HTTPS2HTTP != 1 {
+		return NewArgError("HTTPS2HTTP", "must be 0 or 1")
+	}
+
+	if r.IPHash != 0 && r.IPHash != 1 {
+		return NewArgError("IPHash", "must be 0 or 1")
+	}
+
+	if r.GeoIPMode != 0 && r.GeoIPMode != 1 && r.GeoIPMode != 2 {
+		return NewArgError("GeoIPMode", "must be 0, 1 or 2")
+	}
+
+	if r.WWWRedir != 0 && r.WWWRedir != 1 && r.WWWRedir != 2 {
+		return NewArgError("WWWRedir", "must be 0 or 1")
+	}
+
+	for _, tls := range r.TLSEnabled {
+		if tls != "1" && tls != "1.1" && tls != "1.2" && tls != "1.3" {
+			return NewArgError("TLSEnabled", "must be 1, 1.2, 1.2 or 1.3")
+		}
+	}
+
+	if r.SSLType != "" && r.SSLType != "custom" && r.SSLType != "le" {
+		return NewArgError("SSLType", "must be custom or le")
+	}
+
+	return nil
+}
+
+// Check create request data matches restrictions
+func (s *ResourcesServiceOp) ValidateResourceCreate(r ResourceCreateRequest) error {
 	if r.HTTPS2HTTP != 0 && r.HTTPS2HTTP != 1 {
 		return NewArgError("HTTPS2HTTP", "must be 0 or 1")
 	}
