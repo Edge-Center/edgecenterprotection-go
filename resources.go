@@ -298,6 +298,10 @@ func (s *ResourcesServiceOp) ValidateResourceCreate(r ResourceCreateRequest) err
 		return NewArgError("WWWRedir", "must be 0 or 1")
 	}
 
+	if length(r.TLSEnabled) == 0 {
+		NewArgError("TLSEnabled", "must be non-empty")
+	}
+
 	for _, tls := range r.TLSEnabled {
 		if tls != "1" && tls != "1.1" && tls != "1.2" && tls != "1.3" {
 			return NewArgError("TLSEnabled", "must be 1, 1.2, 1.2 or 1.3")
