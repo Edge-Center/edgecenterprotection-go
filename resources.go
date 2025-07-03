@@ -204,10 +204,22 @@ func (s *ResourcesServiceOp) Update(ctx context.Context, resourceID int64, reqBo
 	return resource, resp, err
 }
 
-// 
+// Get list of domain's IP addresses for DDoS resource
 func (s *ResourcesServiceOp) GetDomainName(ctx context.Context, resourceID int64) (*DnsCheck, *Response, error) {
-	// stub
-	return nil, nil, nil
+	path := fmt.Sprintf("%s/%d/%s", resourcesBasePathV2, resourceID, resourcesDnsCheck)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	dnsAnswer := new(DnsCheck)
+	resp, err := s.client.Do(ctx, req, dnsAnswer)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return dnsAnswer, resp, err
 }
 
 // 
