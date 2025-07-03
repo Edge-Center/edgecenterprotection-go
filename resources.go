@@ -104,16 +104,49 @@ type DnsCheck struct {
 	InNetwork bool `json:"is_in_network"`
 }
 
-// 
-func (s *ResourcesServiceOp) List(ctx context.Context, opts *ResourceListOptions) ([]Resource, *Response, error) {
-	// stub
-	return []Resource{}, nil, nil
+// resourcesRoot represents list of DDoS resources as returned by list API
+type resourcesRoot struct {
+	Count int `json:"count"`
+	Resources []Resource `json:"results"`
 }
 
-// 
+// List get DDoS resources
+func (s *ResourcesServiceOp) List(ctx context.Context, opts *ResourceListOptions) ([]Resource, *Response, error) {
+	path, err := addOptions(resourcesBasePathV2, opts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(resourcesRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.Resources, resp, err
+}
+
+// Get individual DDoS resource
 func (s *ResourcesServiceOp) Get(ctx context.Context, resourceID int64) (*Resource, *Response, error) {
-	// stub
-	return nil, nil, nil
+	path := fmt.Sprintf("%s/%d", resourcesBasePathV2, resourceID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resource := new(Resource)
+	resp, err := s.client.Do(ctx, req, resource)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return resource, resp, err
 }
 
 // 
