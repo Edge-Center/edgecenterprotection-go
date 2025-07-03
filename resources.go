@@ -21,7 +21,7 @@ type ResourcesService interface {
 	Get(context.Context, int64) (*Resource, *Response, error)
 	Create(context.Context, *ResourceCreateRequest) (*Resource, *Response, error)
 	Delete(context.Context, int64) (*Response, error)
-	Update(context.Context, *ResourceCreateRequest) (*Resource, *Response, error)
+	Update(context.Context, int64, *ResourceCreateRequest) (*Resource, *Response, error)
 	GetDomainName(context.Context, int64) (*DnsCheck, *Response, error)
 	ValidateResource(Resource) (error)
 }
@@ -149,22 +149,59 @@ func (s *ResourcesServiceOp) Get(ctx context.Context, resourceID int64) (*Resour
 	return resource, resp, err
 }
 
-// 
+// Create new DDoS protection resource
 func (s *ResourcesServiceOp) Create(ctx context.Context, reqBody *ResourceCreateRequest) (*Resource, *Response, error) {
-	// stub
-	return nil, nil, nil
+	if reqBody == nil {
+		return nil, nil, NewArgError("reqBody", "cannot be nil")
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, resourcesBasePathV2, reqBody)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resource := new(Resource)
+	resp, err := s.client.Do(ctx, req, resource)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return resource, resp, err
 }
 
-// 
+// Delete DdoS protection resource
 func (s *ResourcesServiceOp) Delete(ctx context.Context, resourceID int64) (*Response, error) {
-	// stub
-	return nil, nil
+	path := fmt.Sprintf("%s/%d", resourcesBasePathV2, resourceID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.Do(ctx, req, nil)
+	return resp, err
 }
 
-// 
-func (s *ResourcesServiceOp) Update(ctx context.Context, reqBody *ResourceCreateRequest) (*Resource, *Response, error) {
-	// stub
-	return nil, nil, nil
+// Update DDoS protection resource
+func (s *ResourcesServiceOp) Update(ctx context.Context, resourceID int64, reqBody *ResourceCreateRequest) (*Resource, *Response, error) {
+	if reqBody == nil {
+		return nil, nil, NewArgError("reqBody", "cannot be nil")
+	}
+
+	path := fmt.Sprintf("%s/%d", resourcesBasePathV2, resourceID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, reqBody)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resource := new(Resource)
+	resp, err := s.client.Do(ctx, req, resource)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return resource, resp, err
 }
 
 // 
