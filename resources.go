@@ -23,7 +23,7 @@ type ResourcesService interface {
 	Delete(context.Context, int64) (*Response, error)
 	Update(context.Context, int64, *ResourceCreateRequest) (*Resource, *Response, error)
 	GetDomainName(context.Context, int64) (*DnsCheck, *Response, error)
-	ValidateResource(Resource) (error)
+	ValidateResourceRequest(ResourceCreateRequest) (error)
 }
 
 // ResourcesServiceOp handles communication with DDoS resources methods of the Edgecenter protection API.
@@ -155,6 +155,10 @@ func (s *ResourcesServiceOp) Create(ctx context.Context, reqBody *ResourceCreate
 		return nil, nil, NewArgError("reqBody", "cannot be nil")
 	}
 
+	if s.ValidateResourceRequest(*reqBody) != nil {
+		return nil, nil, NewArgError("reqBody", "failed validation")
+	}
+
 	req, err := s.client.NewRequest(ctx, http.MethodPost, resourcesBasePathV2, reqBody)
 	if err != nil {
 		return nil, nil, err
@@ -186,6 +190,10 @@ func (s *ResourcesServiceOp) Delete(ctx context.Context, resourceID int64) (*Res
 func (s *ResourcesServiceOp) Update(ctx context.Context, resourceID int64, reqBody *ResourceCreateRequest) (*Resource, *Response, error) {
 	if reqBody == nil {
 		return nil, nil, NewArgError("reqBody", "cannot be nil")
+	}
+
+	if s.ValidateResourceRequest(*reqBody) != nil {
+		return nil, nil, NewArgError("reqBody", "failed validation")
 	}
 
 	path := fmt.Sprintf("%s/%d", resourcesBasePathV2, resourceID)
@@ -222,8 +230,25 @@ func (s *ResourcesServiceOp) GetDomainName(ctx context.Context, resourceID int64
 	return dnsAnswer, resp, err
 }
 
-// 
-func (s *ResourcesServiceOp) ValidateResource(r Resource) (error) {
-	// stub
+// Check request data matches restrictions
+func (s *ResourcesServiceOp) ValidateResourceRequest(r ResourceCreateRequest) (error) {
+	if r.HTTPS2HTTP != 0 && r.HTTPS2HTTP != 1 {
+		return NewArgError("HTTPS2HTTP", "must be 0 or 1")
+	}
+
+	if r.IPHash != 0 && r.IPHash != 1 {
+		return NewArgError("IPHash", "must be 0 or 1")
+	}
+
+	if r.GeoIPMode != 0 && r.GeoIPMode != 1 && r.GeoIPMode != 2 {
+		return NewArgError("GeoIPMode", "must be 0, 1 or 2")
+	}
+
+	for _, tls := range r.TLSEnabled {
+		if tls != "1" && tls != "1.1" && tls != "1.2" && tls != "1.3" {
+			return NewArgError("TLSEnabled", "must be 1, 1.2, 1.2 or 1.3")
+		}
+	}
+
 	return nil
 }
