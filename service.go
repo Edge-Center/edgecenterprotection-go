@@ -33,7 +33,7 @@ type WebProtectionDetails struct {
 
 // InfrastructureProtectionDetails represents status of infrastructure protection for current client
 type InfrastructureProtectionDetails struct {
-	HaveBill  bool     `json:"have_bill"`
+	HaveBill  bool    `json:"have_bill"`
 	ClientIds []int64 `json:"accessible_client_ids"`
 }
 
