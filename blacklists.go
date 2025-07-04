@@ -31,13 +31,13 @@ var _ BlacklistsService = &BlacklistsServiceOp{}
 
 // Blacklist represents an blacklist for Edgecenter DDoS protection resource
 type Blacklist struct {
-	ID          int64  `json:"id"`
-	IP          string `json:"blacklist_data"`
+	ID int64  `json:"id"`
+	IP string `json:"blacklist_data"`
 }
 
 // BlacklistCreateRequest represents a request to create an blacklist for DDoS protection resource
 type BlacklistCreateRequest struct {
-	IP          string `json:"blacklist_data"`
+	IP string `json:"blacklist_data"`
 }
 
 // BlacklistListOptions specifies the optional query parameters to List method

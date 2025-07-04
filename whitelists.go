@@ -31,13 +31,13 @@ var _ WhitelistsService = &WhitelistsServiceOp{}
 
 // Whitelist represents an whitelist for Edgecenter DDoS protection resource
 type Whitelist struct {
-	ID          int64  `json:"id"`
-	IP          string `json:"whitelist_data"`
+	ID int64  `json:"id"`
+	IP string `json:"whitelist_data"`
 }
 
 // WhitelistCreateRequest represents a request to create an whitelist for DDoS protection resource
 type WhitelistCreateRequest struct {
-	IP          string `json:"whitelist_data"`
+	IP string `json:"whitelist_data"`
 }
 
 // WhitelistListOptions specifies the optional query parameters to List method
