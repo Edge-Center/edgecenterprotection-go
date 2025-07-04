@@ -32,21 +32,21 @@ var _ AliasesService = &AliasesServiceOp{}
 
 // Alias represents an alias for Edgecenter DDoS protection resource
 type Alias struct {
-	ID          int64  `json:"id"`
-	Created string `json:"alias_created"`
-	Updated string `json:"alias_updated"`
-	Name          string `json:"alias_data"`
-	SSLExpire int `json:"alias_ssl_expire,omitempty"`
-	SSLStatus int `json:"alias_ssl_status"`
-	SSLType string `json:"alias_ssl_type"`
+	ID        int64  `json:"id"`
+	Created   string `json:"alias_created"`
+	Updated   string `json:"alias_updated"`
+	Name      string `json:"alias_data"`
+	SSLExpire int    `json:"alias_ssl_expire,omitempty"`
+	SSLStatus int    `json:"alias_ssl_status"`
+	SSLType   string `json:"alias_ssl_type"`
 }
 
 // AliasCreateRequest represents a request to create an alias for DDoS protection resource
 type AliasCreateRequest struct {
-	Name          string `json:"alias_data"`
+	Name    string `json:"alias_data"`
 	SSLType string `json:"alias_ssl_type,omitempty"`
-	SSLKey string `json:"alias_ssl_key,omitempty"`
-	SSLCrt string `json:"alias_ssl_crt,omitempty"`
+	SSLKey  string `json:"alias_ssl_key,omitempty"`
+	SSLCrt  string `json:"alias_ssl_crt,omitempty"`
 }
 
 // AliasListOptions specifies the optional query parameters to List method
