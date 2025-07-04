@@ -294,6 +294,10 @@ func (s *ResourcesServiceOp) ValidateResourceCreate(r ResourceCreateRequest) err
 		return NewArgError("GeoIPMode", "must be 0, 1 or 2")
 	}
 
+	if len(r.GeoIPList) > 255 {
+		return NewArgError("GeoIPList", "length cannot exceed 255 symbols")
+	}
+
 	if r.WWWRedir != 0 && r.WWWRedir != 1 && r.WWWRedir != 2 {
 		return NewArgError("WWWRedir", "must be 0 or 1")
 	}
