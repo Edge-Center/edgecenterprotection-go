@@ -31,15 +31,15 @@ var _ HeadersService = &HeadersServiceOp{}
 
 // Header represents an header for Edgecenter DDoS protection resource
 type Header struct {
-	ID          int64  `json:"id"`
-	Key          string `json:"header_key"`
-	Value        string `json:"header_value"`
+	ID    int64  `json:"id"`
+	Key   string `json:"header_key"`
+	Value string `json:"header_value"`
 }
 
 // HeaderCreateRequest represents a request to create an header for DDoS protection resource
 type HeaderCreateRequest struct {
-	Key          string `json:"header_key"`
-	Value        string `json:"header_value"`
+	Key   string `json:"header_key"`
+	Value string `json:"header_value"`
 }
 
 // List headers for single DDoS resource
