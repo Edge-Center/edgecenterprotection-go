@@ -32,7 +32,7 @@ var _ OriginsService = &OriginsServiceOp{}
 // Origin represents an origin for Edgecenter DDoS protection resource
 type Origin struct {
 	ID              int64    `json:"id"`
-	Data string `json:"origin_data"`
+	IP string `json:"origin_data"`
 	Mode string `json:"origin_mode"`
 	Weight uint32 `json:"origin_weight"`
 	MaxFails uint32 `json:"origin_max_fails"`
@@ -42,7 +42,7 @@ type Origin struct {
 
 // OriginCreateRequest represents a request to create an origin for DDoS protection resource
 type OriginCreateRequest struct {
-	Data string `json:"origin_data"`
+	IP string `json:"origin_data"`
 	Mode string `json:"origin_mode,omitempty"`
 	Weight uint32 `json:"origin_weight,omitempty"`
 	MaxFails uint32 `json:"origin_max_fails,omitempty"`
