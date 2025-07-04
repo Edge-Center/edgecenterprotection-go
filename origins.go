@@ -31,29 +31,29 @@ var _ OriginsService = &OriginsServiceOp{}
 
 // Origin represents an origin for Edgecenter DDoS protection resource
 type Origin struct {
-	ID              int64    `json:"id"`
-	IP string `json:"origin_data"`
-	Mode string `json:"origin_mode"`
-	Weight uint32 `json:"origin_weight"`
-	MaxFails uint32 `json:"origin_max_fails"`
+	ID          int64  `json:"id"`
+	IP          string `json:"origin_data"`
+	Mode        string `json:"origin_mode"`
+	Weight      uint32 `json:"origin_weight"`
+	MaxFails    uint32 `json:"origin_max_fails"`
 	FailTimeout uint32 `json:"origin_fail_timeout"`
-	Comment string `json:"origin_comment"`
+	Comment     string `json:"origin_comment"`
 }
 
 // OriginCreateRequest represents a request to create an origin for DDoS protection resource
 type OriginCreateRequest struct {
-	IP string `json:"origin_data"`
-	Mode string `json:"origin_mode,omitempty"`
-	Weight uint32 `json:"origin_weight,omitempty"`
-	MaxFails uint32 `json:"origin_max_fails,omitempty"`
+	IP          string `json:"origin_data"`
+	Mode        string `json:"origin_mode,omitempty"`
+	Weight      uint32 `json:"origin_weight,omitempty"`
+	MaxFails    uint32 `json:"origin_max_fails,omitempty"`
 	FailTimeout uint32 `json:"origin_fail_timeout,omitempty"`
-	Comment string `json:"origin_comment,omitempty"`
+	Comment     string `json:"origin_comment,omitempty"`
 }
 
 // OriginListOptions specifies the optional query parameters to List method
 type OriginListOptions struct {
-	Limit           uint32 `url:"limit,omitempty" validate:"omitempty"`
-	Offset          uint32 `url:"offset,omitempty" validate:"omitempty"`
+	Limit  uint32 `url:"limit,omitempty" validate:"omitempty"`
+	Offset uint32 `url:"offset,omitempty" validate:"omitempty"`
 }
 
 // List origins for single DDoS resource
