@@ -75,8 +75,8 @@ type ResourceCreateRequest struct {
 	WWWRedir        byte     `json:"service_wwwredir,omitempty"`
 	TLSEnabled      []string `json:"tls_enabled"`
 	SSLType         string   `json:"ssl_type,omitempty"`
-	SSLCert         string   `json:"ssl_type,omitempty"`
-	SSLKey          string   `json:"ssl_type,omitempty"`
+	SSLCert         string   `json:"service_ssl_crt,omitempty"`
+	SSLKey          string   `json:"service_ssl_key,omitempty"`
 	WAF             bool     `json:"is_waf_enabled,omitempty"`
 }
 
@@ -93,8 +93,8 @@ type ResourceUpdateRequest struct {
 	WWWRedir        byte     `json:"service_wwwredir,omitempty"`
 	TLSEnabled      []string `json:"tls_enabled"`
 	SSLType         string   `json:"ssl_type,omitempty"`
-	SSLCert         string   `json:"ssl_type,omitempty"`
-	SSLKey          string   `json:"ssl_type,omitempty"`
+	SSLCert         string   `json:"service_ssl_crt,omitempty"`
+	SSLKey          string   `json:"service_ssl_key,omitempty"`
 	WAF             bool     `json:"is_waf_enabled,omitempty"`
 }
 
