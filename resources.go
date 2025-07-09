@@ -71,7 +71,7 @@ type ResourceCreateRequest struct {
 	HTTPS2HTTP      byte     `json:"service_https2http"`
 	IPHash          byte     `json:"service_iphash"`
 	GeoIPMode       byte     `json:"service_geoip_mode"`
-	GeoIPList       string   `json:"service_geoip_list,omitempty"`
+	GeoIPList       string   `json:"service_geoip_list"`
 	WWWRedir        byte     `json:"service_wwwredir"`
 	TLSEnabled      []string `json:"tls_enabled"`
 	SSLType         string   `json:"ssl_type,omitempty"`
@@ -89,7 +89,7 @@ type ResourceUpdateRequest struct {
 	HTTPS2HTTP      byte     `json:"service_https2http"`
 	IPHash          byte     `json:"service_iphash"`
 	GeoIPMode       byte     `json:"service_geoip_mode"`
-	GeoIPList       string   `json:"service_geoip_list,omitempty"`
+	GeoIPList       string   `json:"service_geoip_list"`
 	WWWRedir        byte     `json:"service_wwwredir"`
 	TLSEnabled      []string `json:"tls_enabled"`
 	SSLType         string   `json:"ssl_type,omitempty"`
