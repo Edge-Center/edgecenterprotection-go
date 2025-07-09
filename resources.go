@@ -46,56 +46,56 @@ type Resource struct {
 	WAF             bool     `json:"is_waf_enabled"`
 	RedirectToHTTPS bool     `json:"is_redirect_to_https_enabled"`
 	Status          string   `json:"status"`
-	ServiceIP       string   `json:"service_ip,omitempty"`
-	HTTPS2HTTP      byte     `json:"service_https2http,omitempty"`
-	IPHash          byte     `json:"service_iphash,omitempty"`
-	GeoIPMode       byte     `json:"service_geoip_mode,omitempty"`
+	ServiceIP       string   `json:"service_ip"`
+	HTTPS2HTTP      byte     `json:"service_https2http"`
+	IPHash          byte     `json:"service_iphash"`
+	GeoIPMode       byte     `json:"service_geoip_mode"`
 	GeoIPList       string   `json:"service_geoip_list"`
 	WWWRedir        byte     `json:"service_wwwredir"`
 	MultipleOrigins bool     `json:"feature_multiple_origins"`
 	WidlcardAliases bool     `json:"feature_wildcard_aliases"`
-	SSLType         string   `json:"ssl_type,omitempty"`
-	SSLExpire       uint64   `json:"service_ssl_expire,omitempty"`
-	SSLStatus       string   `json:"service_ssl_status,omitempty"`
-	TLSEnabled      []string `json:"tls_enabled,omitempty"`
-	WaitForLE       uint64   `json:"wait_for_le,omitempty"`
+	SSLType         string   `json:"ssl_type"`
+	SSLExpire       uint64   `json:"service_ssl_expire"`
+	SSLStatus       string   `json:"service_ssl_status"`
+	TLSEnabled      []string `json:"tls_enabled"`
+	WaitForLE       uint64   `json:"wait_for_le"`
 }
 
 // ResourceCreateRequest represents a request to create a DDoS protection resource
 type ResourceCreateRequest struct {
 	Name            string   `json:"name"`
-	Active          bool     `json:"active,omitempty"`
-	MultipleOrigins bool     `json:"feature_multiple_origins,omitempty"`
-	WidlcardAliases bool     `json:"feature_wildcard_aliases,omitempty"`
-	RedirectToHTTPS bool     `json:"is_redirect_to_https_enabled,omitempty"`
-	HTTPS2HTTP      byte     `json:"service_https2http,omitempty"`
-	IPHash          byte     `json:"service_iphash,omitempty"`
-	GeoIPMode       byte     `json:"service_geoip_mode,omitempty"`
-	GeoIPList       string   `json:"service_geoip_list,omitempty"`
-	WWWRedir        byte     `json:"service_wwwredir,omitempty"`
+	Active          bool     `json:"active"`
+	MultipleOrigins bool     `json:"feature_multiple_origins"`
+	WidlcardAliases bool     `json:"feature_wildcard_aliases"`
+	RedirectToHTTPS bool     `json:"is_redirect_to_https_enabled"`
+	HTTPS2HTTP      byte     `json:"service_https2http"`
+	IPHash          byte     `json:"service_iphash"`
+	GeoIPMode       byte     `json:"service_geoip_mode"`
+	GeoIPList       string   `json:"service_geoip_list"`
+	WWWRedir        byte     `json:"service_wwwredir"`
 	TLSEnabled      []string `json:"tls_enabled"`
-	SSLType         string   `json:"ssl_type,omitempty"`
-	SSLCert         string   `json:"service_ssl_crt,omitempty"`
-	SSLKey          string   `json:"service_ssl_key,omitempty"`
-	WAF             bool     `json:"is_waf_enabled,omitempty"`
+	SSLType         string   `json:"ssl_type"`
+	SSLCert         string   `json:"service_ssl_crt"`
+	SSLKey          string   `json:"service_ssl_key"`
+	WAF             bool     `json:"is_waf_enabled"`
 }
 
 // ResourceUpdateRequest represents a request to update a DDoS protection resource
 type ResourceUpdateRequest struct {
-	Active          bool     `json:"active,omitempty"`
-	MultipleOrigins bool     `json:"feature_multiple_origins,omitempty"`
-	WidlcardAliases bool     `json:"feature_wildcard_aliases,omitempty"`
-	RedirectToHTTPS bool     `json:"is_redirect_to_https_enabled,omitempty"`
-	HTTPS2HTTP      byte     `json:"service_https2http,omitempty"`
-	IPHash          byte     `json:"service_iphash,omitempty"`
-	GeoIPMode       byte     `json:"service_geoip_mode,omitempty"`
-	GeoIPList       string   `json:"service_geoip_list,omitempty"`
-	WWWRedir        byte     `json:"service_wwwredir,omitempty"`
+	Active          bool     `json:"active"`
+	MultipleOrigins bool     `json:"feature_multiple_origins"`
+	WidlcardAliases bool     `json:"feature_wildcard_aliases"`
+	RedirectToHTTPS bool     `json:"is_redirect_to_https_enabled"`
+	HTTPS2HTTP      byte     `json:"service_https2http"`
+	IPHash          byte     `json:"service_iphash"`
+	GeoIPMode       byte     `json:"service_geoip_mode"`
+	GeoIPList       string   `json:"service_geoip_list"`
+	WWWRedir        byte     `json:"service_wwwredir"`
 	TLSEnabled      []string `json:"tls_enabled"`
-	SSLType         string   `json:"ssl_type,omitempty"`
-	SSLCert         string   `json:"service_ssl_crt,omitempty"`
-	SSLKey          string   `json:"service_ssl_key,omitempty"`
-	WAF             bool     `json:"is_waf_enabled,omitempty"`
+	SSLType         string   `json:"ssl_type"`
+	SSLCert         string   `json:"service_ssl_crt"`
+	SSLKey          string   `json:"service_ssl_key"`
+	WAF             bool     `json:"is_waf_enabled"`
 }
 
 // ResourceListOptions specifies the optional query parameters to List method
