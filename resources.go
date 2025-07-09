@@ -71,12 +71,12 @@ type ResourceCreateRequest struct {
 	HTTPS2HTTP      byte     `json:"service_https2http"`
 	IPHash          byte     `json:"service_iphash"`
 	GeoIPMode       byte     `json:"service_geoip_mode"`
-	GeoIPList       string   `json:"service_geoip_list"`
+	GeoIPList       string   `json:"service_geoip_list,omitempty"`
 	WWWRedir        byte     `json:"service_wwwredir"`
 	TLSEnabled      []string `json:"tls_enabled"`
-	SSLType         string   `json:"ssl_type"`
-	SSLCert         string   `json:"service_ssl_crt"`
-	SSLKey          string   `json:"service_ssl_key"`
+	SSLType         string   `json:"ssl_type,omitempty"`
+	SSLCert         string   `json:"service_ssl_crt,omitempty"`
+	SSLKey          string   `json:"service_ssl_key,omitempty"`
 	WAF             bool     `json:"is_waf_enabled"`
 }
 
@@ -89,12 +89,12 @@ type ResourceUpdateRequest struct {
 	HTTPS2HTTP      byte     `json:"service_https2http"`
 	IPHash          byte     `json:"service_iphash"`
 	GeoIPMode       byte     `json:"service_geoip_mode"`
-	GeoIPList       string   `json:"service_geoip_list"`
+	GeoIPList       string   `json:"service_geoip_list,omitempty"`
 	WWWRedir        byte     `json:"service_wwwredir"`
 	TLSEnabled      []string `json:"tls_enabled"`
-	SSLType         string   `json:"ssl_type"`
-	SSLCert         string   `json:"service_ssl_crt"`
-	SSLKey          string   `json:"service_ssl_key"`
+	SSLType         string   `json:"ssl_type,omitempty"`
+	SSLCert         string   `json:"service_ssl_crt,omitempty"`
+	SSLKey          string   `json:"service_ssl_key,omitempty"`
 	WAF             bool     `json:"is_waf_enabled"`
 }
 
