@@ -26,15 +26,15 @@ var _ ServicesService = &ServicesServiceOp{}
 
 // WebProtectionDetails represents status of web protection for current client
 type WebProtectionDetails struct {
-	DDoSType int32 `json:"ddos_type"`
-	WAF      bool  `json:"is_waf_enabled"`
-	AntiBot  bool  `json:"is_antibot_enabled"`
+	DDoSType int  `json:"ddos_type"`
+	WAF      bool `json:"is_waf_enabled"`
+	AntiBot  bool `json:"is_antibot_enabled"`
 }
 
 // InfrastructureProtectionDetails represents status of infrastructure protection for current client
 type InfrastructureProtectionDetails struct {
-	HaveBill  bool    `json:"have_bill"`
-	ClientIds []int64 `json:"accessible_client_ids"`
+	HaveBill  bool  `json:"have_bill"`
+	ClientIds []int `json:"accessible_client_ids"`
 }
 
 // Get web protection status

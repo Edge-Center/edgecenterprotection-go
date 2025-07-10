@@ -34,9 +34,9 @@ type Origin struct {
 	ID          int64  `json:"id"`
 	IP          string `json:"origin_data"`
 	Mode        string `json:"origin_mode"`
-	Weight      int32  `json:"origin_weight"`
-	MaxFails    int32  `json:"origin_max_fails"`
-	FailTimeout int32  `json:"origin_fail_timeout"`
+	Weight      int    `json:"origin_weight"`
+	MaxFails    int    `json:"origin_max_fails"`
+	FailTimeout int    `json:"origin_fail_timeout"`
 	Comment     string `json:"origin_comment"`
 }
 
@@ -44,16 +44,16 @@ type Origin struct {
 type OriginCreateRequest struct {
 	IP          string `json:"origin_data"`
 	Mode        string `json:"origin_mode,omitempty"`
-	Weight      int32  `json:"origin_weight,omitempty"`
-	MaxFails    int32  `json:"origin_max_fails,omitempty"`
-	FailTimeout int32  `json:"origin_fail_timeout,omitempty"`
+	Weight      int    `json:"origin_weight,omitempty"`
+	MaxFails    int    `json:"origin_max_fails,omitempty"`
+	FailTimeout int    `json:"origin_fail_timeout,omitempty"`
 	Comment     string `json:"origin_comment,omitempty"`
 }
 
 // OriginListOptions specifies the optional query parameters to List method
 type OriginListOptions struct {
-	Limit  int32 `url:"limit,omitempty" validate:"omitempty"`
-	Offset int32 `url:"offset,omitempty" validate:"omitempty"`
+	Limit  int `url:"limit,omitempty" validate:"omitempty"`
+	Offset int `url:"offset,omitempty" validate:"omitempty"`
 }
 
 // List origins for single DDoS resource

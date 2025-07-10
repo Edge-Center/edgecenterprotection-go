@@ -42,8 +42,8 @@ type BlacklistCreateRequest struct {
 
 // BlacklistListOptions specifies the optional query parameters to List method
 type BlacklistListOptions struct {
-	Limit  int32 `url:"limit,omitempty" validate:"omitempty"`
-	Offset int32 `url:"offset,omitempty" validate:"omitempty"`
+	Limit  int `url:"limit,omitempty" validate:"omitempty"`
+	Offset int `url:"offset,omitempty" validate:"omitempty"`
 }
 
 // List blacklists for single DDoS resource
