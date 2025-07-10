@@ -44,16 +44,16 @@ type Origin struct {
 type OriginCreateRequest struct {
 	IP          string `json:"origin_data"`
 	Mode        string `json:"origin_mode,omitempty"`
-	Weight      uint32 `json:"origin_weight,omitempty"`
-	MaxFails    uint32 `json:"origin_max_fails,omitempty"`
-	FailTimeout uint32 `json:"origin_fail_timeout,omitempty"`
+	Weight      int32  `json:"origin_weight,omitempty"`
+	MaxFails    int32  `json:"origin_max_fails,omitempty"`
+	FailTimeout int32  `json:"origin_fail_timeout,omitempty"`
 	Comment     string `json:"origin_comment,omitempty"`
 }
 
 // OriginListOptions specifies the optional query parameters to List method
 type OriginListOptions struct {
-	Limit  uint32 `url:"limit,omitempty" validate:"omitempty"`
-	Offset uint32 `url:"offset,omitempty" validate:"omitempty"`
+	Limit  int32 `url:"limit,omitempty" validate:"omitempty"`
+	Offset int32 `url:"offset,omitempty" validate:"omitempty"`
 }
 
 // List origins for single DDoS resource
