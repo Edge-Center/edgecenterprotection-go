@@ -55,10 +55,10 @@ type Resource struct {
 	MultipleOrigins bool     `json:"feature_multiple_origins"`
 	WidlcardAliases bool     `json:"feature_wildcard_aliases"`
 	SSLType         string   `json:"ssl_type"`
-	SSLExpire       uint64   `json:"service_ssl_expire"`
+	SSLExpire       int64    `json:"service_ssl_expire"`
 	SSLStatus       string   `json:"service_ssl_status"`
 	TLSEnabled      []string `json:"tls_enabled"`
-	WaitForLE       uint64   `json:"wait_for_le"`
+	WaitForLE       int64    `json:"wait_for_le"`
 }
 
 // ResourceCreateRequest represents a request to create a DDoS protection resource
@@ -100,8 +100,8 @@ type ResourceUpdateRequest struct {
 
 // ResourceListOptions specifies the optional query parameters to List method
 type ResourceListOptions struct {
-	Limit           uint32 `url:"limit,omitempty" validate:"omitempty"`
-	Offset          uint32 `url:"offset,omitempty" validate:"omitempty"`
+	Limit           int32  `url:"limit,omitempty" validate:"omitempty"`
+	Offset          int32  `url:"offset,omitempty" validate:"omitempty"`
 	Ordering        string `url:"ordering,omitempty" validate:"omitempty"`
 	ClientID        int64  `url"client,omitempty" validate:"omitempty"`
 	Name            string `url:"name,omitempty" validate:"omitempty"`

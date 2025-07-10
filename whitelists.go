@@ -42,8 +42,8 @@ type WhitelistCreateRequest struct {
 
 // WhitelistListOptions specifies the optional query parameters to List method
 type WhitelistListOptions struct {
-	Limit  uint32 `url:"limit,omitempty" validate:"omitempty"`
-	Offset uint32 `url:"offset,omitempty" validate:"omitempty"`
+	Limit  int32 `url:"limit,omitempty" validate:"omitempty"`
+	Offset int32 `url:"offset,omitempty" validate:"omitempty"`
 }
 
 // List whitelists for single DDoS resource

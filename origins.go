@@ -34,9 +34,9 @@ type Origin struct {
 	ID          int64  `json:"id"`
 	IP          string `json:"origin_data"`
 	Mode        string `json:"origin_mode"`
-	Weight      uint32 `json:"origin_weight"`
-	MaxFails    uint32 `json:"origin_max_fails"`
-	FailTimeout uint32 `json:"origin_fail_timeout"`
+	Weight      int32  `json:"origin_weight"`
+	MaxFails    int32  `json:"origin_max_fails"`
+	FailTimeout int32  `json:"origin_fail_timeout"`
 	Comment     string `json:"origin_comment"`
 }
 

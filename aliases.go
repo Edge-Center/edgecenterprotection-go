@@ -51,8 +51,8 @@ type AliasCreateRequest struct {
 
 // AliasListOptions specifies the optional query parameters to List method
 type AliasListOptions struct {
-	Limit  uint32 `url:"limit,omitempty" validate:"omitempty"`
-	Offset uint32 `url:"offset,omitempty" validate:"omitempty"`
+	Limit  int32 `url:"limit,omitempty" validate:"omitempty"`
+	Offset int32 `url:"offset,omitempty" validate:"omitempty"`
 }
 
 // List aliases for single DDoS resource
