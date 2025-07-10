@@ -103,7 +103,7 @@ type ResourceListOptions struct {
 	Limit           int    `url:"limit,omitempty" validate:"omitempty"`
 	Offset          int    `url:"offset,omitempty" validate:"omitempty"`
 	Ordering        string `url:"ordering,omitempty" validate:"omitempty"`
-	ClientID        int    `url"client,omitempty" validate:"omitempty"`
+	ClientID        int    `url:"client,omitempty" validate:"omitempty"`
 	Name            string `url:"name,omitempty" validate:"omitempty"`
 	Active          bool   `url:"active,omitempty" validate:"omitempty"`
 	MultipleOrigin  bool   `url:"feature_multiple_origins,omitempty" validate:"omitempty"`
