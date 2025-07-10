@@ -43,11 +43,11 @@ type Origin struct {
 // OriginCreateRequest represents a request to create an origin for DDoS protection resource
 type OriginCreateRequest struct {
 	IP          string `json:"origin_data"`
-	Mode        string `json:"origin_mode,omitempty"`
-	Weight      int    `json:"origin_weight,omitempty"`
-	MaxFails    int    `json:"origin_max_fails,omitempty"`
-	FailTimeout int    `json:"origin_fail_timeout,omitempty"`
-	Comment     string `json:"origin_comment,omitempty"`
+	Mode        string `json:"origin_mode"`
+	Weight      int    `json:"origin_weight"`
+	MaxFails    int    `json:"origin_max_fails"`
+	FailTimeout int    `json:"origin_fail_timeout"`
+	Comment     string `json:"origin_comment"`
 }
 
 // OriginListOptions specifies the optional query parameters to List method
