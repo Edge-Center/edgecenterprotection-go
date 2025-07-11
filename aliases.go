@@ -19,8 +19,9 @@ type AliasesService interface {
 	Get(context.Context, int64, int64) (*Alias, *Response, error)
 	Create(context.Context, int64, *AliasCreateRequest) (*Alias, *Response, error)
 	Delete(context.Context, int64, int64) (*Response, error)
-	Update(context.Context, int64, int64, *AliasCreateRequest) (*Alias, *Response, error)
-	ValidateAliasRequest(AliasCreateRequest) error
+	Update(context.Context, int64, int64, *AliasUpdateRequest) (*Alias, *Response, error)
+	ValidateAliasCreateRequest(AliasCreateRequest) error
+	ValidateAliasUpdateRequest(AliasUpdateRequest) error
 }
 
 // AliasesServiceOp handles communication with methods of aliases for DDoS resources of the Edgecenter protection API.
@@ -44,6 +45,13 @@ type Alias struct {
 // AliasCreateRequest represents a request to create an alias for DDoS protection resource
 type AliasCreateRequest struct {
 	Name    string `json:"alias_data"`
+	SSLType string `json:"alias_ssl_type"`
+	SSLKey  string `json:"alias_ssl_key,omitempty"`
+	SSLCrt  string `json:"alias_ssl_crt,omitempty"`
+}
+
+// AliasUpdateRequest represents a request to update an alias for DDoS protection resource
+type AliasUpdateRequest struct {
 	SSLType string `json:"alias_ssl_type"`
 	SSLKey  string `json:"alias_ssl_key,omitempty"`
 	SSLCrt  string `json:"alias_ssl_crt,omitempty"`
@@ -104,7 +112,7 @@ func (s *AliasesServiceOp) Create(ctx context.Context, resourceID int64, reqBody
 		return nil, nil, NewArgError("reqBody", "cannot be nil")
 	}
 
-	if s.ValidateAliasRequest(*reqBody) != nil {
+	if s.ValidateAliasCreateRequest(*reqBody) != nil {
 		return nil, nil, NewArgError("reqBody", "failed validation")
 	}
 
@@ -136,12 +144,12 @@ func (s *AliasesServiceOp) Delete(ctx context.Context, resourceID int64, aliasID
 }
 
 // Update alias for DDoS resource
-func (s *AliasesServiceOp) Update(ctx context.Context, resourceID int64, aliasID int64, reqBody *AliasCreateRequest) (*Alias, *Response, error) {
+func (s *AliasesServiceOp) Update(ctx context.Context, resourceID int64, aliasID int64, reqBody *AliasUpdateRequest) (*Alias, *Response, error) {
 	if reqBody == nil {
 		return nil, nil, NewArgError("reqBody", "cannot be nil")
 	}
 
-	if s.ValidateAliasRequest(*reqBody) != nil {
+	if s.ValidateAliasUpdateRequest(*reqBody) != nil {
 		return nil, nil, NewArgError("reqBody", "failed validation")
 	}
 
@@ -162,8 +170,17 @@ func (s *AliasesServiceOp) Update(ctx context.Context, resourceID int64, aliasID
 }
 
 // Check create request data matches restrictions
-func (s *AliasesServiceOp) ValidateAliasRequest(r AliasCreateRequest) error {
-	if r.SSLType != "" && r.SSLType != "custom" && r.SSLType != "le" {
+func (s *AliasesServiceOp) ValidateAliasCreateRequest(r AliasCreateRequest) error {
+	if r.SSLType != "custom" && r.SSLType != "le" {
+		return NewArgError("SSLType", "must be custom or le")
+	}
+
+	return nil
+}
+
+// Check update request data matches restrictions
+func (s *AliasesServiceOp) ValidateAliasUpdateRequest(r AliasUpdateRequest) error {
+	if r.SSLType != "custom" && r.SSLType != "le" {
 		return NewArgError("SSLType", "must be custom or le")
 	}
 
