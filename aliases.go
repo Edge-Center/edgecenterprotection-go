@@ -44,7 +44,7 @@ type Alias struct {
 // AliasCreateRequest represents a request to create an alias for DDoS protection resource
 type AliasCreateRequest struct {
 	Name    string `json:"alias_data"`
-	SSLType string `json:"alias_ssl_type,omitempty"`
+	SSLType string `json:"alias_ssl_type"`
 	SSLKey  string `json:"alias_ssl_key,omitempty"`
 	SSLCrt  string `json:"alias_ssl_crt,omitempty"`
 }
