@@ -33,28 +33,28 @@ var _ AliasesService = &AliasesServiceOp{}
 
 // Alias represents an alias for Edgecenter DDoS protection resource
 type Alias struct {
-	ID        int64  `json:"id"`
-	Created   string `json:"alias_created"`
-	Updated   string `json:"alias_updated"`
-	Name      string `json:"alias_data"`
-	SSLExpire int    `json:"alias_ssl_expire,omitempty"`
-	SSLStatus int    `json:"alias_ssl_status"`
-	SSLType   string `json:"alias_ssl_type"`
+	ID        int64   `json:"id"`
+	Created   string  `json:"alias_created"`
+	Updated   string  `json:"alias_updated"`
+	Name      string  `json:"alias_data"`
+	SSLExpire int     `json:"alias_ssl_expire,omitempty"`
+	SSLStatus int     `json:"alias_ssl_status"`
+	SSLType   *string `json:"alias_ssl_type"`
 }
 
 // AliasCreateRequest represents a request to create an alias for DDoS protection resource
 type AliasCreateRequest struct {
-	Name    string `json:"alias_data"`
-	SSLType string `json:"alias_ssl_type"`
-	SSLKey  string `json:"alias_ssl_key,omitempty"`
-	SSLCrt  string `json:"alias_ssl_crt,omitempty"`
+	Name    string  `json:"alias_data"`
+	SSLType *string `json:"alias_ssl_type"`
+	SSLKey  *string `json:"alias_ssl_key,omitempty"`
+	SSLCrt  *string `json:"alias_ssl_crt,omitempty"`
 }
 
 // AliasUpdateRequest represents a request to update an alias for DDoS protection resource
 type AliasUpdateRequest struct {
-	SSLType string `json:"alias_ssl_type"`
-	SSLKey  string `json:"alias_ssl_key,omitempty"`
-	SSLCrt  string `json:"alias_ssl_crt,omitempty"`
+	SSLType *string `json:"alias_ssl_type"`
+	SSLKey  *string `json:"alias_ssl_key,omitempty"`
+	SSLCrt  *string `json:"alias_ssl_crt,omitempty"`
 }
 
 // AliasListOptions specifies the optional query parameters to List method
@@ -171,8 +171,11 @@ func (s *AliasesServiceOp) Update(ctx context.Context, resourceID int64, aliasID
 
 // Check create request data matches restrictions
 func (s *AliasesServiceOp) ValidateAliasCreateRequest(r AliasCreateRequest) error {
-	if r.SSLType != "custom" && r.SSLType != "le" {
-		return NewArgError("SSLType", "must be custom or le")
+	ssltype := r.SSLType
+	if ssltype != nil {
+		if *ssltype != "custom" && *ssltype != "le" {
+			return NewArgError("SSLType", "must be custom or le")
+		}
 	}
 
 	return nil
@@ -180,8 +183,11 @@ func (s *AliasesServiceOp) ValidateAliasCreateRequest(r AliasCreateRequest) erro
 
 // Check update request data matches restrictions
 func (s *AliasesServiceOp) ValidateAliasUpdateRequest(r AliasUpdateRequest) error {
-	if r.SSLType != "custom" && r.SSLType != "le" {
-		return NewArgError("SSLType", "must be custom or le")
+	ssltype := r.SSLType
+	if ssltype != nil {
+		if *ssltype != "custom" && *ssltype != "le" {
+			return NewArgError("SSLType", "must be custom or le")
+		}
 	}
 
 	return nil
