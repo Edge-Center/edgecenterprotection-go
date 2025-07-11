@@ -54,7 +54,7 @@ type Resource struct {
 	WWWRedir        byte     `json:"service_wwwredir"`
 	MultipleOrigins bool     `json:"feature_multiple_origins"`
 	WidlcardAliases bool     `json:"feature_wildcard_aliases"`
-	SSLType         string   `json:"ssl_type"`
+	SSLType         *string  `json:"ssl_type"`
 	SSLExpire       int      `json:"service_ssl_expire"`
 	SSLStatus       string   `json:"service_ssl_status"`
 	TLSEnabled      []string `json:"tls_enabled"`
@@ -74,9 +74,9 @@ type ResourceCreateRequest struct {
 	GeoIPList       string   `json:"service_geoip_list"`
 	WWWRedir        byte     `json:"service_wwwredir"`
 	TLSEnabled      []string `json:"tls_enabled"`
-	SSLType         string   `json:"ssl_type,omitempty"`
-	SSLCert         string   `json:"service_ssl_crt,omitempty"`
-	SSLKey          string   `json:"service_ssl_key,omitempty"`
+	SSLType         *string  `json:"ssl_type"`
+	SSLCert         *string  `json:"service_ssl_crt,omitempty"`
+	SSLKey          *string  `json:"service_ssl_key,omitempty"`
 	WAF             bool     `json:"is_waf_enabled"`
 }
 
@@ -92,9 +92,9 @@ type ResourceUpdateRequest struct {
 	GeoIPList       string   `json:"service_geoip_list"`
 	WWWRedir        byte     `json:"service_wwwredir"`
 	TLSEnabled      []string `json:"tls_enabled"`
-	SSLType         string   `json:"ssl_type,omitempty"`
-	SSLCert         string   `json:"service_ssl_crt,omitempty"`
-	SSLKey          string   `json:"service_ssl_key,omitempty"`
+	SSLType         *string  `json:"ssl_type"`
+	SSLCert         *string  `json:"service_ssl_crt,omitempty"`
+	SSLKey          *string  `json:"service_ssl_key,omitempty"`
 	WAF             bool     `json:"is_waf_enabled"`
 }
 
@@ -263,6 +263,10 @@ func (s *ResourcesServiceOp) ValidateResourceUpdate(r ResourceUpdateRequest) err
 		return NewArgError("GeoIPMode", "must be 0, 1 or 2")
 	}
 
+	if len(r.GeoIPList) > 255 {
+		return NewArgError("GeoIPList", "length cannot exceed 255 symbols")
+	}
+
 	if r.WWWRedir != 0 && r.WWWRedir != 1 && r.WWWRedir != 2 {
 		return NewArgError("WWWRedir", "must be 0 or 1")
 	}
@@ -273,8 +277,11 @@ func (s *ResourcesServiceOp) ValidateResourceUpdate(r ResourceUpdateRequest) err
 		}
 	}
 
-	if r.SSLType != "" && r.SSLType != "custom" && r.SSLType != "le" {
-		return NewArgError("SSLType", "must be custom or le")
+	ssltype := r.SSLType
+	if ssltype != nil {
+		if *ssltype != "" && *ssltype != "custom" && *ssltype != "le" {
+			return NewArgError("SSLType", "must be custom or le")
+		}
 	}
 
 	return nil
@@ -312,8 +319,11 @@ func (s *ResourcesServiceOp) ValidateResourceCreate(r ResourceCreateRequest) err
 		}
 	}
 
-	if r.SSLType != "" && r.SSLType != "custom" && r.SSLType != "le" {
-		return NewArgError("SSLType", "must be custom or le")
+	ssltype := r.SSLType
+	if ssltype != nil {
+		if *ssltype != "" && *ssltype != "custom" && *ssltype != "le" {
+			return NewArgError("SSLType", "must be custom or le")
+		}
 	}
 
 	return nil
