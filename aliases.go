@@ -175,7 +175,7 @@ func (s *AliasesServiceOp) Update(ctx context.Context, resourceID int64, aliasID
 func (s *AliasesServiceOp) ValidateAliasCreateRequest(r AliasCreateRequest) error {
 	ssltype := r.SSLType
 	if ssltype != nil {
-		if *ssltype != "custom" && *ssltype != "le" {
+		if len(*ssltype) > 0 && *ssltype != "custom" && *ssltype != "le" {
 			return NewArgError("SSLType", "must be custom or le")
 		}
 	}
@@ -187,7 +187,7 @@ func (s *AliasesServiceOp) ValidateAliasCreateRequest(r AliasCreateRequest) erro
 func (s *AliasesServiceOp) ValidateAliasUpdateRequest(r AliasUpdateRequest) error {
 	ssltype := r.SSLType
 	if ssltype != nil {
-		if *ssltype != "custom" && *ssltype != "le" {
+		if len(*ssltype) > 0 && *ssltype != "custom" && *ssltype != "le" {
 			return NewArgError("SSLType", "must be custom or le")
 		}
 	}
