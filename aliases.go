@@ -114,7 +114,7 @@ func (s *AliasesServiceOp) Create(ctx context.Context, resourceID int64, reqBody
 
 	err := s.ValidateAliasCreateRequest(*reqBody)
 	if err != nil {
-		return nil, nil, NewArgError("reqBody", "failed validation")
+		return nil, nil, err
 	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, reqBody)
