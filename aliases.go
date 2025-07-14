@@ -112,7 +112,8 @@ func (s *AliasesServiceOp) Create(ctx context.Context, resourceID int64, reqBody
 		return nil, nil, NewArgError("reqBody", "cannot be nil")
 	}
 
-	if s.ValidateAliasCreateRequest(*reqBody) != nil {
+	err := s.ValidateAliasCreateRequest(*reqBody)
+	if err != nil {
 		return nil, nil, NewArgError("reqBody", "failed validation")
 	}
 
@@ -149,8 +150,9 @@ func (s *AliasesServiceOp) Update(ctx context.Context, resourceID int64, aliasID
 		return nil, nil, NewArgError("reqBody", "cannot be nil")
 	}
 
-	if s.ValidateAliasUpdateRequest(*reqBody) != nil {
-		return nil, nil, NewArgError("reqBody", "failed validation")
+	err := s.ValidateAliasUpdateRequest(*reqBody)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	path := fmt.Sprintf("%s/%d/%s/%d", resourcesBasePathV2, resourceID, aliasesPathV2, aliasID)
