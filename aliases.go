@@ -38,7 +38,7 @@ type Alias struct {
 	Updated   string  `json:"alias_updated"`
 	Name      string  `json:"alias_data"`
 	SSLExpire int     `json:"alias_ssl_expire,omitempty"`
-	SSLStatus int     `json:"alias_ssl_status"`
+	SSLStatus string  `json:"alias_ssl_status"`
 	SSLType   *string `json:"alias_ssl_type"`
 }
 
