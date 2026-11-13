@@ -106,7 +106,7 @@ type ResponseError struct {
 func addOptions(s string, opt interface{}) (string, error) {
 	v := reflect.ValueOf(opt)
 
-	if v.Kind() == reflect.Ptr && v.IsNil() {
+	if v.Kind() == reflect.Pointer && v.IsNil() {
 		return s, nil
 	}
 
