@@ -2,6 +2,7 @@ package edgecenterprotection_go
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -96,6 +97,20 @@ type ResourceUpdateRequest struct {
 	SSLCert         *string  `json:"service_ssl_crt,omitempty"`
 	SSLKey          *string  `json:"service_ssl_key,omitempty"`
 	WAF             bool     `json:"is_waf_enabled"`
+	OmitSSLType     bool     `json:"-"`
+}
+
+func (r ResourceUpdateRequest) MarshalJSON() ([]byte, error) {
+	type request ResourceUpdateRequest
+
+	if !r.OmitSSLType {
+		return json.Marshal(request(r))
+	}
+
+	return json.Marshal(struct {
+		request
+		SSLType *string `json:"ssl_type,omitempty"`
+	}{request: request(r)})
 }
 
 // ResourceListOptions specifies the optional query parameters to List method
