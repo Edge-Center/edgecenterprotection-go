@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"path"
@@ -29,6 +30,10 @@ const (
 	defaultRetryMax     = 3
 	defaultRetryWaitMax = 30
 	defaultRetryWaitMin = 1
+
+	defaultTooManyRequestsRetryMax     = 5
+	defaultTooManyRequestsRetryWaitMin = 1.1
+	defaultTooManyRequestsRetryWaitMax = 1.6
 )
 
 // Client manages communication with Edgecenter Protection API
@@ -60,6 +65,10 @@ type Client struct {
 	// Optional retry values. Setting the RetryConfig.RetryMax value enables automatically retrying requests
 	// that fail with 429 or 500-level response codes
 	RetryConfig RetryConfig
+
+	// Optional opt-in retry policy for HTTP 429 responses only. Enabled with WithRetryOnTooManyRequests.
+	// Takes precedence over RetryConfig when both are set.
+	TooManyRequestsRetryConfig *RetryOnTooManyRequestsConfig
 }
 
 // RetryConfig sets the values used for enabling retries and backoffs for
@@ -72,6 +81,22 @@ type RetryConfig struct {
 	RetryMax     int
 	RetryWaitMin *float64    // Minimum time to wait
 	RetryWaitMax *float64    // Maximum time to wait
+	Logger       interface{} // Customer logger instance. Must implement either go-retryablehttp.Logger or go-retryablehttp.LeveledLogger
+}
+
+// RetryOnTooManyRequestsConfig configures an opt-in retry policy that retries
+// HTTP 429 responses only. It is enabled with WithRetryOnTooManyRequests.
+//
+// RetryMax is the number of retries after the initial request; zero selects the
+// default of 5 (6 attempts in total). RetryWaitMin and RetryWaitMax are the
+// bounds in seconds for a random delay before each retry; the defaults are 1.1
+// and 1.6. If only one bound is set, the other shifts by the default 0.5s spread.
+// The delay does not grow with the attempt number and Retry-After is deliberately
+// ignored.
+type RetryOnTooManyRequestsConfig struct {
+	RetryMax     int
+	RetryWaitMin *float64    // Lower bound of the random wait, in seconds
+	RetryWaitMax *float64    // Upper bound (exclusive) of the random wait, in seconds
 	Logger       interface{} // Customer logger instance. Must implement either go-retryablehttp.Logger or go-retryablehttp.LeveledLogger
 }
 
@@ -180,41 +205,115 @@ func New(httpClient *http.Client, opts ...ClientOpt) (*Client, error) {
 		}
 	}
 
-	// if retryMax is set it will use the retryablehttp client.
-	if c.RetryConfig.RetryMax > 0 {
-		retryableClient := retryablehttp.NewClient()
-		retryableClient.RetryMax = c.RetryConfig.RetryMax
+	if c.TooManyRequestsRetryConfig != nil {
+		config := c.TooManyRequestsRetryConfig
+		waitMin := defaultTooManyRequestsRetryWaitMin
+		waitMax := defaultTooManyRequestsRetryWaitMax
+		spread := waitMax - waitMin
 
-		if c.RetryConfig.RetryWaitMin != nil {
-			retryableClient.RetryWaitMin = time.Duration(*c.RetryConfig.RetryWaitMin * float64(time.Second))
-		}
-		if c.RetryConfig.RetryWaitMax != nil {
-			retryableClient.RetryWaitMax = time.Duration(*c.RetryConfig.RetryWaitMax * float64(time.Second))
-		}
-
-		// By default, this is nil and does not log.
-		retryableClient.Logger = c.RetryConfig.Logger
-
-		// if timeout is set, it is maintained before overwriting client with StandardClient()
-		retryableClient.HTTPClient.Timeout = c.HTTPClient.Timeout
-
-		// This custom ErrorHandler is required to provide errors that are consistent
-		// with a *edgecloud.ErrorResponse and a non-nil *edgecloud.Response while providing
-		// insight into retries using an internal header.
-		retryableClient.ErrorHandler = func(resp *http.Response, err error, numTries int) (*http.Response, error) {
-			if resp != nil {
-				resp.Header.Add(internalHeaderRetryAttempts, strconv.Itoa(numTries))
-
-				return resp, err
+		if config.RetryWaitMin != nil {
+			waitMin = *config.RetryWaitMin
+			if config.RetryWaitMax == nil {
+				waitMax = waitMin + spread
 			}
+		}
+		if config.RetryWaitMax != nil {
+			waitMax = *config.RetryWaitMax
+			if config.RetryWaitMin == nil {
+				waitMin = waitMax - spread
+			}
+		}
+		if waitMin < 0 {
+			return nil, NewArgError("RetryWaitMin", "must not be negative")
+		}
+		if waitMax < waitMin {
+			return nil, NewArgError("RetryWaitMax", "must not be less than RetryWaitMin")
+		}
+
+		retryConfig := RetryConfig{
+			RetryMax:     defaultTooManyRequestsRetryMax,
+			RetryWaitMin: PtrTo(waitMin),
+			RetryWaitMax: PtrTo(waitMax),
+			Logger:       config.Logger,
+		}
+		if config.RetryMax > 0 {
+			retryConfig.RetryMax = config.RetryMax
+		}
+
+		retryableClient := c.newRetryableHTTPClient(retryConfig)
+		retryableClient.CheckRetry = retryOnlyOnTooManyRequests
+		retryableClient.Backoff = jitteredBackoff(retryableClient.RetryWaitMin, retryableClient.RetryWaitMax)
+
+		c.HTTPClient = retryableClient.StandardClient()
+	} else if c.RetryConfig.RetryMax > 0 {
+		// if retryMax is set it will use the retryablehttp client.
+		c.HTTPClient = c.newRetryableHTTPClient(c.RetryConfig).StandardClient()
+	}
+
+	return c, nil
+}
+
+// newRetryableHTTPClient performs the common go-retryablehttp setup shared by
+// both retry policies, including the ErrorHandler that exposes the number of
+// attempts through an internal header on the final response.
+func (c *Client) newRetryableHTTPClient(config RetryConfig) *retryablehttp.Client {
+	retryableClient := retryablehttp.NewClient()
+	retryableClient.RetryMax = config.RetryMax
+
+	if config.RetryWaitMin != nil {
+		retryableClient.RetryWaitMin = time.Duration(*config.RetryWaitMin * float64(time.Second))
+	}
+	if config.RetryWaitMax != nil {
+		retryableClient.RetryWaitMax = time.Duration(*config.RetryWaitMax * float64(time.Second))
+	}
+
+	// By default, this is nil and does not log.
+	retryableClient.Logger = config.Logger
+
+	// if timeout is set, it is maintained before overwriting client with StandardClient()
+	retryableClient.HTTPClient.Timeout = c.HTTPClient.Timeout
+
+	// This custom ErrorHandler is required to provide errors that are consistent
+	// with a *edgecloud.ErrorResponse and a non-nil *edgecloud.Response while providing
+	// insight into retries using an internal header.
+	retryableClient.ErrorHandler = func(resp *http.Response, err error, numTries int) (*http.Response, error) {
+		if resp != nil {
+			resp.Header.Add(internalHeaderRetryAttempts, strconv.Itoa(numTries))
 
 			return resp, err
 		}
 
-		c.HTTPClient = retryableClient.StandardClient()
+		return resp, err
 	}
 
-	return c, nil
+	return retryableClient
+}
+
+// retryOnlyOnTooManyRequests retries HTTP 429 responses and nothing else:
+// 4xx/5xx responses and transport errors are returned to the caller as is.
+func retryOnlyOnTooManyRequests(ctx context.Context, resp *http.Response, err error) (bool, error) {
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return false, ctxErr
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return resp != nil && resp.StatusCode == http.StatusTooManyRequests, nil
+}
+
+// jitteredBackoff returns a random delay in [min, max) for every retry. It
+// intentionally ignores the attempt number and Retry-After: the API rate limit
+// counter is reset every second and the jitter only spreads parallel retries.
+func jitteredBackoff(min, max time.Duration) retryablehttp.Backoff {
+	return func(_, _ time.Duration, _ int, _ *http.Response) time.Duration {
+		if max <= min {
+			return min
+		}
+
+		return min + time.Duration(rand.Int63n(int64(max-min)))
+	}
 }
 
 // SetBaseURL is a client option for setting the base URL.
@@ -273,6 +372,31 @@ func WithRetryAndBackoffs(retryConfig RetryConfig) ClientOpt {
 		c.RetryConfig.RetryWaitMax = retryConfig.RetryWaitMax
 		c.RetryConfig.RetryWaitMin = retryConfig.RetryWaitMin
 		c.RetryConfig.Logger = retryConfig.Logger
+		return nil
+	}
+}
+
+// WithRetryOnTooManyRequests enables an opt-in retry policy that retries HTTP 429
+// responses only, with a random wait of about a second between attempts. Transport
+// errors, 4xx (except 429) and 5xx responses are never retried. When both retry
+// options are used, this policy takes precedence over WithRetryAndBackoffs.
+func WithRetryOnTooManyRequests(config RetryOnTooManyRequestsConfig) ClientOpt {
+	return func(c *Client) error {
+		if config.RetryMax < 0 {
+			return NewArgError("RetryMax", "must not be negative")
+		}
+		if config.RetryWaitMin != nil && *config.RetryWaitMin < 0 {
+			return NewArgError("RetryWaitMin", "must not be negative")
+		}
+		if config.RetryWaitMax != nil && *config.RetryWaitMax < 0 {
+			return NewArgError("RetryWaitMax", "must not be negative")
+		}
+		if config.RetryWaitMin != nil && config.RetryWaitMax != nil && *config.RetryWaitMax < *config.RetryWaitMin {
+			return NewArgError("RetryWaitMax", "must not be less than RetryWaitMin")
+		}
+
+		c.TooManyRequestsRetryConfig = &config
+
 		return nil
 	}
 }
